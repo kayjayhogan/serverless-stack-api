@@ -1,46 +1,28 @@
 import uuid from 'uuid';
-import AWS from 'aws-sdk';
+import { success, failure } from './libs/response-lib';
+import * as dynamoDbLib from './libs/dynamodb-lib';
 
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+export async function main(event, context) {
 
-export function main(event, context, callback) {
-  // request body is passed in as JSON encoded string in event.body
   const data = JSON.parse(event.body);
 
   const params = {
     TableName: process.env.tableName,
     Item: {
-      userId: event.requestContext.identity.cognitoIdentityId, // user identities federated through Cognito Identity Pool, use identity id as user id of authenticated user
+      userId: event.requestContext.identity.cognitoIdentityId,
       noteId: uuid.v1(),
-      content: data.content, // parsed from req body
-      attachment: data.attachment, // parsed from req body
+      content: data.content,
+      attachment: data.attachment,
       createdAt: Date.now()
     }
   };
 
-  dynamoDB.put(params, (err, data) => {
-    // enable CORS
-    const headers = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true
-    };
+  try {
+    await dynamoDbLib.call('put', params);
+    return success(params.Item);
+  } catch(err) {
+    console.log('Error creating: ', err);
+    return failure({ status: false });
+  }
 
-    if(err) {
-      let response = {
-        statusCode: 500,
-        headers: headers,
-        body: JSON.stringify({
-          status: false
-        })
-      };
-      callback(null, response);
-      return;
-    }
-    let response = {
-      statusCode: 200,
-      headers: headers,
-      body: JSON.stringify(params.Item)
-    };
-    callback(null, response);
-  });
 };
