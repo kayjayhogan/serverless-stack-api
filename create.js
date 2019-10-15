@@ -1,7 +1,7 @@
 import uuid from 'uuid';
 import AWS from 'aws-sdk';
 
-const dynamoDB = new AWS.DynamoDB().DocumentClient();
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export function main(event, context, callback) {
   // request body is passed in as JSON encoded string in event.body
@@ -32,7 +32,7 @@ export function main(event, context, callback) {
         body: JSON.stringify({
           status: false
         })
-      }
+      };
       callback(null, response);
       return;
     }
