@@ -1,4 +1,4 @@
-export function calculateCost(storage) {
+export default function calculateCost(storage) {
   let rate;
   if(storage <= 10) rate = 4;
   else if(storage <= 100) rate = 2;
